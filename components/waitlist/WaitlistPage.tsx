@@ -8,6 +8,7 @@ const STORAGE_KEY    = 'predictearn_waitlist'
 const TELEGRAM_URL   = 'https://t.me/+twTRWf1XJSU3OGM0'
 const TWITTER_HANDLE = 'predictearn_'
 const TWITTER_URL    = 'https://x.com/predictearn_'
+const TWEET_URL      = 'https://x.com/predictearn_/status/2045577731002204261'
 
 function getPayoutDate() {
   const now  = new Date()
@@ -32,7 +33,6 @@ function loadLocal(): { refCode: string; position: number } | null {
   } catch { return null }
 }
 
-// Helper to get Supabase client (only on client side)
 function getSupabase() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,6 +109,9 @@ const GLOBAL_CSS = `
   a.lb-link:hover  { opacity:0.8; }
   a.tg-link:hover  { opacity:0.85; }
   a.twt-link:hover { opacity:0.8; }
+  .checkbox-custom { appearance:none; width:20px; height:20px; border:2px solid var(--line2); border-radius:4px; background:var(--ink); cursor:pointer; position:relative; flex-shrink:0; transition:all 0.2s; }
+  .checkbox-custom:checked { background:var(--acid); border-color:var(--acid); }
+  .checkbox-custom:checked::after { content:'✓'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--ink); font-size:14px; font-weight:700; }
 `
 
 const inputStyle: React.CSSProperties = {
@@ -278,7 +281,6 @@ function SuccessScreen({ position, refCode }: { position: number; refCode: strin
               Share your link — every referral moves you up the queue and enters you in the prize draw
             </p>
 
-            {/* Prize pool */}
             <PrizePool/>
 
             {/* Referral link */}
@@ -296,7 +298,16 @@ function SuccessScreen({ position, refCode }: { position: number; refCode: strin
               </div>
             </div>
 
-            {/* Telegram CTA (optional) */}
+            {/* Share on X with specific tweet */}
+            <a
+              href={`https://twitter.com/intent/tweet?text=I%20just%20joined%20%40${TWITTER_HANDLE}%20waitlist%20%E2%80%94%20the%20first%20on-chain%20prediction%20market%20on%20Celo.%20Top%20referrers%20win%20cash%20on%20${encodeURIComponent(PAYOUT_DATE)}%21%20Join%3A%20${encodeURIComponent(refLink)}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{ display:'inline-flex',alignItems:'center',gap:'8px',padding:'12px 28px',background:'#fff',color:'#000',borderRadius:'6px',fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:'clamp(12px,2vw,14px)',textDecoration:'none',marginBottom:'10px' }}
+            >
+              𝕏 &nbsp;Share on X to climb faster
+            </a>
+
+            {/* Telegram CTA */}
             <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="tg-link"
               style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'13px 16px',background:'rgba(34,158,217,0.08)',border:'1px solid rgba(34,158,217,0.28)',borderRadius:'8px',textDecoration:'none',marginBottom:'10px',transition:'opacity 0.2s',fontSize:'11px' }}>
               <div style={{ display:'flex',alignItems:'center',gap:'10px' }}>
@@ -322,15 +333,6 @@ function SuccessScreen({ position, refCode }: { position: number; refCode: strin
                 </div>
               ))}
             </div>
-
-            {/* Share on X */}
-            <a
-              href={`https://twitter.com/intent/tweet?text=I%20just%20joined%20%40${TWITTER_HANDLE}%20waitlist%20%E2%80%94%20the%20first%20on-chain%20prediction%20market%20on%20Celo.%20Top%20referrers%20win%20cash%20on%20${encodeURIComponent(PAYOUT_DATE)}%21%20Join%3A%20${encodeURIComponent(refLink)}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{ display:'inline-flex',alignItems:'center',gap:'8px',padding:'12px 28px',background:'#fff',color:'#000',borderRadius:'6px',fontFamily:"'DM Sans',sans-serif",fontWeight:600,fontSize:'clamp(12px,2vw,14px)',textDecoration:'none' }}
-            >
-              𝕏 &nbsp;Share on X to climb faster
-            </a>
           </div>
 
           <Ticker/>
@@ -341,11 +343,14 @@ function SuccessScreen({ position, refCode }: { position: number; refCode: strin
 }
 
 export default function WaitlistPage() {
-  const [name,    setName]    = useState('')
-  const [email,   setEmail]   = useState('')
-  const [twitter, setTwitter] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState('')
+  const [name,           setName]           = useState('')
+  const [email,          setEmail]          = useState('')
+  const [twitter,        setTwitter]        = useState('')
+  const [loading,        setLoading]        = useState(false)
+  const [error,          setError]          = useState('')
+  const [followedX,      setFollowedX]      = useState(false)
+  const [joinedTg,       setJoinedTg]       = useState(false)
+  const [sharedPost,     setSharedPost]     = useState(false)
 
   const [result, setResult] = useState<{ refCode: string; position: number } | null>(() => {
     if (typeof window === 'undefined') return null
@@ -361,17 +366,22 @@ export default function WaitlistPage() {
     ? new URLSearchParams(window.location.search).get('ref') ?? undefined
     : undefined
 
+  const allChecked = followedX && joinedTg && sharedPost
+
   const handleSubmit = async () => {
     setError('')
     if (!name.trim())                                          return setError('Please enter your name')
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setError('Please enter a valid email')
+    if (!followedX)                                            return setError('Please follow us on X')
+    if (!joinedTg)                                             return setError('Please join our Telegram')
+    if (!sharedPost)                                           return setError('Please share the announcement post')
 
     setLoading(true)
     const normalizedEmail = email.trim().toLowerCase()
     
-    // Create Supabase client only when needed
     const supabase = getSupabase()
 
+    // Check for duplicate email
     const { data: existing } = await supabase
       .from('waitlist')
       .select('ref_code')
@@ -379,11 +389,8 @@ export default function WaitlistPage() {
       .maybeSingle()
 
     if (existing) {
-      const { count } = await supabase
-        .from('waitlist')
-        .select('*', { count: 'exact', head: true })
       setLoading(false)
-      saveResult({ refCode: existing.ref_code, position: Math.max(count ?? 1, 1) })
+      setError('This email is already on the waitlist!')
       return
     }
 
@@ -426,7 +433,6 @@ export default function WaitlistPage() {
 
           <Nav label="Waitlist Open"/>
 
-          {/* ── WAITLIST FORM ─── */}
           <div className="anim-fadeup">
             <div style={{ display:'flex',alignItems:'center',gap:'8px',marginBottom:'clamp(12px,3vw,16px)' }}>
               <span className="anim-blink" style={{ width:'6px',height:'6px',borderRadius:'50%',background:'var(--acid)',flexShrink:0,display:'inline-block' }}/>
@@ -446,19 +452,70 @@ export default function WaitlistPage() {
 
             <PrizePool/>
 
+            {/* Required actions */}
+            <div style={{ background:'var(--card)',border:'1px solid var(--line)',borderRadius:'10px',padding:'clamp(14px,3vw,18px)',marginBottom:'clamp(14px,3vw,18px)' }}>
+              <p style={{ fontSize:'10px',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',color:'var(--muted)',margin:'0 0 12px 0' }}>
+                🔒 Required to join
+              </p>
+              
+              {/* Follow on X */}
+              <label style={{ display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',cursor:'pointer',borderBottom:'1px solid var(--line)' }}>
+                <input type="checkbox" checked={followedX} onChange={e => setFollowedX(e.target.checked)} className="checkbox-custom"/>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:'13px',fontWeight:600,color:'#fff' }}>Follow us on X</div>
+                  <div style={{ fontSize:'11px',color:'var(--muted)' }}>@{TWITTER_HANDLE}</div>
+                </div>
+                <a href={TWITTER_URL} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                  style={{ fontSize:'11px',color:'var(--acid)',textDecoration:'none',fontWeight:600,padding:'5px 10px',border:'1px solid rgba(200,255,0,0.25)',borderRadius:'4px' }}>
+                  Follow →
+                </a>
+              </label>
+
+              {/* Join Telegram */}
+              <label style={{ display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',cursor:'pointer',borderBottom:'1px solid var(--line)' }}>
+                <input type="checkbox" checked={joinedTg} onChange={e => setJoinedTg(e.target.checked)} className="checkbox-custom"/>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:'13px',fontWeight:600,color:'#fff' }}>Join Telegram Channel</div>
+                  <div style={{ fontSize:'11px',color:'var(--muted)' }}>Get launch alerts & updates</div>
+                </div>
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                  style={{ fontSize:'11px',color:'var(--tg)',textDecoration:'none',fontWeight:600,padding:'5px 10px',border:'1px solid rgba(34,158,217,0.3)',borderRadius:'4px' }}>
+                  Join →
+                </a>
+              </label>
+
+              {/* Share Announcement Post */}
+              <label style={{ display:'flex',alignItems:'center',gap:'12px',padding:'10px 0',cursor:'pointer' }}>
+                <input type="checkbox" checked={sharedPost} onChange={e => setSharedPost(e.target.checked)} className="checkbox-custom"/>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:'13px',fontWeight:600,color:'#fff' }}>Share Announcement Post</div>
+                  <div style={{ fontSize:'11px',color:'var(--muted)' }}>Repost on X to spread the word</div>
+                </div>
+                <a href={`https://twitter.com/intent/retweet?tweet_id=2045577731002204261`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                  style={{ fontSize:'11px',color:'#fff',textDecoration:'none',fontWeight:600,padding:'5px 10px',background:'#1d9bf0',borderRadius:'4px' }}>
+                  Repost →
+                </a>
+              </label>
+            </div>
+
             <div style={{ display:'flex',flexDirection:'column',gap:'8px',marginBottom:'clamp(16px,4vw,20px)' }}>
               <input type="text" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} style={inputStyle}/>
               <input type="email" placeholder="your@email.com" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} style={inputStyle}/>
               <div style={{ display:'flex',gap:'8px' }}>
                 <input type="text" placeholder="@twitter (optional)" value={twitter} onChange={e => setTwitter(e.target.value)} style={{ ...inputStyle, flex:1 }}/>
-                <button onClick={handleSubmit} disabled={loading}
-                  style={{ padding:'clamp(10px,2vw,14px) clamp(20px,4vw,28px)',background:loading?'rgba(200,255,0,0.4)':'var(--acid)',color:'var(--ink)',border:'none',borderRadius:'6px',fontFamily:"'Bebas Neue',sans-serif",fontSize:'clamp(13px,2vw,15px)',fontWeight:700,letterSpacing:'0.04em',cursor:loading?'not-allowed':'pointer',transition:'all 0.3s',textTransform:'uppercase',whiteSpace:'nowrap' }}>
+                <button onClick={handleSubmit} disabled={loading || !allChecked}
+                  style={{ padding:'clamp(10px,2vw,14px) clamp(20px,4vw,28px)',background:(loading || !allChecked)?'rgba(200,255,0,0.4)':'var(--acid)',color:'var(--ink)',border:'none',borderRadius:'6px',fontFamily:"'Bebas Neue',sans-serif",fontSize:'clamp(13px,2vw,15px)',fontWeight:700,letterSpacing:'0.04em',cursor:(loading || !allChecked)?'not-allowed':'pointer',transition:'all 0.3s',textTransform:'uppercase',whiteSpace:'nowrap' }}>
                   {loading ? 'Joining…' : 'Join'}
                 </button>
               </div>
               {error && (
                 <p style={{ fontSize:'clamp(11px,2vw,13px)',color:'var(--red)',margin:'2px 0 0',display:'flex',alignItems:'center',gap:'6px' }}>
                   ⚠ {error}
+                </p>
+              )}
+              {!allChecked && (
+                <p style={{ fontSize:'10px',color:'rgba(255,255,255,0.3)',textAlign:'center' }}>
+                  Complete all 3 tasks above to unlock the join button
                 </p>
               )}
             </div>
@@ -473,20 +530,6 @@ export default function WaitlistPage() {
           <div style={{ display:'flex',flexDirection:'column',gap:'clamp(14px,3vw,20px)' }}>
             <Ticker/>
 
-            {/* Optional Telegram CTA */}
-            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="tg-link"
-              style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px',background:'rgba(34,158,217,0.08)',border:'1px solid rgba(34,158,217,0.25)',borderRadius:'8px',textDecoration:'none',transition:'opacity 0.2s' }}>
-              <div style={{ display:'flex',alignItems:'center',gap:'10px' }}>
-                <span style={{ fontSize:'18px',color:'var(--tg)' }}><TelegramIcon size={18}/></span>
-                <div>
-                  <div style={{ fontSize:'13px',fontWeight:600,color:'#fff' }}>Stay updated on Telegram</div>
-                  <div style={{ fontSize:'11px',color:'rgba(34,158,217,0.65)' }}>Launch alerts & live odds</div>
-                </div>
-              </div>
-              <span style={{ fontSize:'16px',color:'var(--tg)' }}>→</span>
-            </a>
-
-            {/* Leaderboard CTA */}
             <a href="/leaderboard" className="lb-link" style={{ display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 16px',background:'var(--card)',border:'1px solid var(--line2)',borderRadius:'8px',textDecoration:'none',transition:'opacity 0.2s' }}>
               <div style={{ display:'flex',alignItems:'center',gap:'10px' }}>
                 <span style={{ fontSize:'20px' }}>🏆</span>

@@ -17,11 +17,11 @@ function getPayoutDate() {
 }
 const PAYOUT_DATE = getPayoutDate()
 
+// In LeaderboardPage.tsx, replace the PRIZES array:
 const PRIZES = [
-  { rank: 1, prize: '$10', icon: '🥇', color: '#FFD60A' },
-  { rank: 2, prize: '$5',  icon: '🥈', color: '#C0C0C0' },
-  { rank: 3, prize: '$3',  icon: '🥉', color: '#CD7F32' },
-  { rank: 4, prize: '$2',  icon: '4️⃣',  color: '#C8FF00' },
+  { rank: 1, prize: '$5', icon: '🥇', color: '#FFD60A' },
+  { rank: 2, prize: '$3', icon: '🥈', color: '#C0C0C0' },
+  { rank: 3, prize: '$2', icon: '🥉', color: '#CD7F32' },
 ]
 
 type Entry = {
