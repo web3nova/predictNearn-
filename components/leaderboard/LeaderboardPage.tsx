@@ -17,7 +17,6 @@ function getPayoutDate() {
 }
 const PAYOUT_DATE = getPayoutDate()
 
-// In LeaderboardPage.tsx, replace the PRIZES array:
 const PRIZES = [
   { rank: 1, prize: '$5', icon: '🥇', color: '#FFD60A' },
   { rank: 2, prize: '$3', icon: '🥈', color: '#C0C0C0' },
@@ -102,7 +101,7 @@ function PrizePool() {
           Pays out {PAYOUT_DATE}
         </div>
       </div>
-      <div style={{ display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'6px' }}>
+      <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'6px' }}>
         {PRIZES.map(p => (
           <div key={p.rank} style={{ background:`${p.color}0a`,border:`1px solid ${p.color}30`,borderRadius:'8px',padding:'10px 6px',textAlign:'center' }}>
             <div style={{ fontSize:'clamp(14px,3vw,18px)',marginBottom:'3px' }}>{p.icon}</div>
@@ -112,7 +111,7 @@ function PrizePool() {
         ))}
       </div>
       <p style={{ fontSize:'10px',color:'rgba(255,255,255,0.2)',textAlign:'center',margin:'10px 0 0' }}>
-        Top 4 referrers paid to their email · {PAYOUT_DATE}
+        Top 3 referrers paid to their email · {PAYOUT_DATE}
       </p>
     </div>
   )
@@ -129,7 +128,6 @@ function Medal({ rank }: { rank: number }) {
   if (rank === 1) return <span style={{ fontSize:'20px' }}>🥇</span>
   if (rank === 2) return <span style={{ fontSize:'20px' }}>🥈</span>
   if (rank === 3) return <span style={{ fontSize:'20px' }}>🥉</span>
-  if (rank === 4) return <span style={{ fontSize:'16px' }}>4️⃣</span>
   return <span style={{ fontFamily:"'Space Mono',monospace",fontSize:'11px',color:'var(--muted)',width:'24px',textAlign:'center',display:'inline-block' }}>#{rank}</span>
 }
 
@@ -185,12 +183,10 @@ export default function LeaderboardPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Prize color for top 4 rows
   const prizeColor = (rank: number) => {
     if (rank === 1) return '#FFD60A'
     if (rank === 2) return '#C0C0C0'
     if (rank === 3) return '#CD7F32'
-    if (rank === 4) return '#C8FF00'
     return null
   }
 
@@ -232,7 +228,7 @@ export default function LeaderboardPage() {
               Referral<br/><span style={{ color:'var(--acid)' }}>Leaderboard</span>
             </h1>
             <p style={{ fontSize:'13px',color:'var(--muted)',lineHeight:1.6 }}>
-              Refer friends to climb the queue. Top 4 referrers win cash prizes paid on <span style={{ color:'rgba(255,214,10,0.8)',fontWeight:600 }}>{PAYOUT_DATE}</span>.
+              Refer friends to climb the queue. Top 3 referrers win cash prizes paid on <span style={{ color:'rgba(255,214,10,0.8)',fontWeight:600 }}>{PAYOUT_DATE}</span>.
             </p>
           </div>
 
@@ -275,7 +271,7 @@ export default function LeaderboardPage() {
                         {t.icon} {t.label}
                       </span>
                     )})()}
-                    {myRank <= 4 && (
+                    {myRank <= 3 && (
                       <span style={{ fontSize:'11px',fontWeight:700,color:prizeColor(myRank)!,background:`${prizeColor(myRank)}18`,border:`1px solid ${prizeColor(myRank)}40`,borderRadius:'100px',padding:'2px 8px' }}>
                         {PRIZES[myRank-1].prize} prize 🎉
                       </span>
@@ -381,7 +377,7 @@ export default function LeaderboardPage() {
                     const isMe  = e.ref_code === myRefCode
                     const tier  = tierInfo(e.referral_count)
                     const prize = PRIZES.find(p => p.rank === rank)
-                    const isPrize = rank <= 4
+                    const isPrize = rank <= 3
 
                     return (
                       <div key={e.id} id={isMe ? 'my-row' : undefined}
