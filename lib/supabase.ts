@@ -1,23 +1,28 @@
 import { createClient } from '@supabase/supabase-js'
 
-let supabaseInstance: ReturnType<typeof createClient> | null = null
+let supabaseClient: ReturnType<typeof createClient> | null = null
 
-export const getSupabase = () => {
+export function getSupabase() {
   if (typeof window === 'undefined') {
-    // Server-side: return null or handle differently
-    return null
+    throw new Error('getSupabase can only be called on the client side')
   }
   
-  if (!supabaseInstance) {
+  if (!supabaseClient) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Missing Supabase environment variables')
+      throw new Error('Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set')
     }
     
-    supabaseInstance = createClient(supabaseUrl, supabaseKey)
+    supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: false, // Prevents creating auth listeners
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    })
   }
   
-  return supabaseInstance
+  return supabaseClient
 }
