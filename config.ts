@@ -80,7 +80,7 @@ export const APP_CONFIG = {
     creator: 'PredictEarn',
     openGraph: {
       type: 'website',
-      url: 'https://predictearn.xyz',
+      url: 'https://predictnearn.xyz',
       title: 'PredictEarn - Decentralized Prediction Markets',
       description: 'Bet on sports, entertainment, crypto & more. Real-time odds, instant payouts on Celo.',
       images: [

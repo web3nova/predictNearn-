@@ -248,7 +248,7 @@ function PrizePool() {
 
 function SuccessScreen({ position, refCode }: { position: number; refCode: string }) {
   const [copied, setCopied] = useState(false)
-  const refLink = `https://predictearn.xyz?ref=${refCode}`
+  const refLink = `https://predictnearn.xyz?ref=${refCode}`
 
   const handleCopy = () => {
     navigator.clipboard.writeText(refLink)

@@ -173,7 +173,7 @@ export default function LeaderboardPage() {
   const myIndex = entries.findIndex(e => e.ref_code === myRefCode)
   const myEntry = myIndex >= 0 ? entries[myIndex] : null
   const myRank  = myIndex >= 0 ? myIndex + 1 : null
-  const myLink  = myRefCode ? `https://predictearn.xyz?ref=${myRefCode}` : null
+  const myLink  = myRefCode ? `https://predictnearn.xyz?ref=${myRefCode}` : null
 
   const totalSignups   = entries.length
   const totalReferrals = entries.reduce((s, e) => s + e.referral_count, 0)

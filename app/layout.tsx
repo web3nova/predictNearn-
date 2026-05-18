@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PredictEarn",
     description: "Decentralized Prediction Markets on Celo",
-    url: "https://predictearn.xyz",
+    url: "https://predictnearn.xyz",
     siteName: "PredictEarn",
     type: "website",
   },
