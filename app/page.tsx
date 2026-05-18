@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import WaitlistPage from "@/components/waitlist/WaitlistPage";
 
+// Add this to prevent static generation
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'PredictEarn — Waitlist',
   description: 'The first on-chain football prediction market on Celo via MiniPay Waitlist.',

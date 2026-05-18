@@ -4,11 +4,6 @@ import { useState } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 const STORAGE_KEY    = 'predictearn_waitlist'
 const TELEGRAM_URL   = 'https://t.me/+twTRWf1XJSU3OGM0'
 const TWITTER_HANDLE = 'predictearn_'
@@ -37,8 +32,17 @@ function loadLocal(): { refCode: string; position: number } | null {
   } catch { return null }
 }
 
+// Helper to get Supabase client (only on client side)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
 async function notifyReferrer(referrerRefCode: string, newUserName: string) {
   try {
+    const supabase = getSupabase()
     const { data: referrer } = await supabase
       .from('waitlist')
       .select('email, name')
@@ -364,6 +368,9 @@ export default function WaitlistPage() {
 
     setLoading(true)
     const normalizedEmail = email.trim().toLowerCase()
+    
+    // Create Supabase client only when needed
+    const supabase = getSupabase()
 
     const { data: existing } = await supabase
       .from('waitlist')

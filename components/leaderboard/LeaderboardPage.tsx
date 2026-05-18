@@ -1,12 +1,9 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
 
 const STORAGE_KEY    = 'predictearn_waitlist'
 const TELEGRAM_URL   = 'https://t.me/+twTRWf1XJSU3OGM0'
@@ -156,6 +153,10 @@ export default function LeaderboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
       const { data } = await supabase
         .from('waitlist')
         .select('id, name, twitter, ref_code, referral_count, created_at')
