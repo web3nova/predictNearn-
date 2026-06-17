@@ -28,6 +28,7 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="talentapp:project_verification" content="3dbdf542ebf7c2dd14f4d7f6b731355bb5abc728b34cbd80ec8be41203770dba3d1aa381143b3497ad93f336a3ddeaf00f1c24c16251dbc0ef66d629a7217fa9" />
         <style>{`
           * {
             margin: 0;
